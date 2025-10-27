@@ -1,9 +1,19 @@
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../firebase.init";
+
 function Register() {
   const handleRegister = (e) => {
     e.preventDefault();
     const email = e.target.email.value;
     const password = e.target.password.value;
-    console.log(email, password);
+
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((result) => {
+        console.log(result);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
   return (
     <div className="max-w-sm mx-auto mt-12">
