@@ -1,18 +1,41 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
 import { auth } from "../../firebase.init";
+import { useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { Link } from "react-router";
 
 function Register() {
+  const [errorMessage, setErrorMessage] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [passwordShow, setPasswordShow] = useState(false);
+
   const handleRegister = (e) => {
     e.preventDefault();
     const email = e.target.email.value;
     const password = e.target.password.value;
+    const trams = e.target.trams.checked;
+    console.log(email, password, trams);
 
+    setErrorMessage("");
+    setSuccess(false);
+    if (!trams) {
+      setErrorMessage(<p>Please Accept Our Trams And Condition</p>);
+      return;
+    }
     createUserWithEmailAndPassword(auth, email, password)
       .then((result) => {
         console.log(result);
+
+        sendEmailVerification(auth.currentUser).then(() => {
+          setSuccess(true);
+        });
       })
       .catch((error) => {
         console.log(error);
+        setErrorMessage(error.message);
       });
   };
   return (
@@ -66,15 +89,25 @@ function Register() {
               <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle>
             </g>
           </svg>
-          <input
-            type="password"
-            name="password"
-            required
-            placeholder="Password"
-            minLength="8"
-            pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-            title="Must be more than 8 characters, including number, lowercase letter, uppercase letter"
-          />
+          <div className="relative">
+            <input
+              type={passwordShow ? "text" : "password"}
+              name="password"
+              required
+              placeholder="Password"
+              minLength="8"
+              pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+              title="Must be more than 8 characters, including number, lowercase letter, uppercase letter"
+            />
+            <div
+              onClick={() => {
+                setPasswordShow(!passwordShow);
+              }}
+              className="absolute -mt-4 -right-26"
+            >
+              {passwordShow ? <FaEyeSlash /> : <FaEye />}
+            </div>
+          </div>
         </label>
         <p className="validator-hint hidden">
           Must be more than 8 characters, including
@@ -84,9 +117,22 @@ function Register() {
           At least one uppercase letter
         </p>
         <br />
+        <label className="label">
+          <input type="checkbox" name="trams" className="checkbox" />
+          Accepts Our Trams And Conditions
+        </label>
+        <br />
         {/* Submit Button  */}
         <input className="btn bg-primary" type="submit" value="submit" />
       </form>
+      <p>
+        Already have an account? Please{" "}
+        <Link className="text-blue-400 underline" to="/login">
+          Login
+        </Link>{" "}
+      </p>
+      {errorMessage && <p>{errorMessage}</p>}
+      {success && <p>User Created Successfully</p>}
     </div>
   );
 }
